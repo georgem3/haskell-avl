@@ -1,5 +1,8 @@
 module AVLTree where
-data Tree a = EmptyTree | Node (a,Int) (Tree a) (Tree a) deriving (Eq, Read)
+data Tree a = EmptyTree 
+            | Node (a,Int) (Tree a) (Tree a) 
+            -- corresponds to (nodeContent, height) leftTree rightTree
+            deriving (Eq, Read)
 
 -- naive insertion without balancing 
 insert :: (Ord a) => a -> Tree a -> Tree a
@@ -9,18 +12,15 @@ insert x (Node (v,b) l r)
     | x > v = Node (v,b) l (insert x r)
     | otherwise = Node (x,b) l r
 
--- returns the height of a giving tree
+-- helper to return the height value of a given tree
 height :: Tree a -> Int
 height EmptyTree = 0
-height (Node _ l r) = 1 + max (height l) (height r)
+height (Node (_,h) l r) = h
 
--- checks if a tree is balanced (i.e. the balance factor is in [-1,1])
-isBalanced :: (Ord a) => Tree a -> Bool
-isBalanced EmptyTree = True
-isBalanced (Node v l r) | not (isBalanced l) = False
-                        | not (isBalanced r) = False
-                        | abs ((height l) - (height r)) > 1 = False
-                        | otherwise = True
+-- returns the height difference of a tree's children
+diff :: Tree a -> Int
+diff EmptyTree = 0
+diff (Node v l r) = (height l) - (height r)
 
 -- helper to quickly build a tree from an integer list
 fromList :: [Integer] -> Tree Integer
@@ -39,8 +39,8 @@ instance (Show a) => Show (Tree a) where
 
 -- test trees
 tree1 :: Tree Int
-tree1 = Node (3,0) (Node (1,0) EmptyTree EmptyTree) (Node (5,0) ((Node (4,0) EmptyTree EmptyTree)) ((Node (8,0) ((Node (7,0) EmptyTree EmptyTree)) ((Node (15,0) EmptyTree EmptyTree))))) 
+tree1 = Node (3,4) (Node (1,1) EmptyTree EmptyTree) (Node (5,3) ((Node (4,1) EmptyTree EmptyTree)) ((Node (8,2) ((Node (7,1) EmptyTree EmptyTree)) ((Node (15,1) EmptyTree EmptyTree))))) 
 tree2 :: Tree Int
-tree2 = Node (3,0) (Node (1,0) EmptyTree (Node (2,0) EmptyTree EmptyTree)) (Node (5,0) ((Node (4,0) EmptyTree EmptyTree)) ((Node (8,0) ((Node (7,0) EmptyTree EmptyTree)) ((Node (15,0) EmptyTree EmptyTree))))) 
+tree2 = Node (3,4) (Node (1,2) EmptyTree (Node (2,1) EmptyTree EmptyTree)) (Node (5,3) ((Node (4,1) EmptyTree EmptyTree)) ((Node (8,2) ((Node (7,1) EmptyTree EmptyTree)) ((Node (15,1) EmptyTree EmptyTree))))) 
 tree3 :: Tree Int
-tree3 = Node (3,0) (Node (1,0) EmptyTree EmptyTree) (Node (5,0) ((Node (4,0) EmptyTree EmptyTree)) ((Node (8,0) EmptyTree EmptyTree))) 
+tree3 = Node (3,3) (Node (1,1) EmptyTree EmptyTree) (Node (5,2) ((Node (4,1) EmptyTree EmptyTree)) ((Node (8,1) EmptyTree EmptyTree))) 
