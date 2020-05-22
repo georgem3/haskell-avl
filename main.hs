@@ -12,6 +12,20 @@ insert x (Node (v,b) l r)
     | x > v = Node (v,b) l (insert x r)
     | otherwise = Node (x,b) l r
 
+-- rotates a tree around its root to the right
+rotateR :: Tree a -> Tree a
+rotateR EmptyTree = EmptyTree
+rotateR (Node (x,h) (Node (y,k) sl sr) r) = Node (y,k') sl (Node (x,h') sr r) where
+    h' = 1 + max (height sr) (height r)
+    k'  = 1 + max (height sl) h'
+
+-- rotates a tree around its root to the left
+rotateL :: Tree a -> Tree a
+rotateL EmptyTree = EmptyTree
+rotateL (Node (x,h) l (Node (y,k) sl sr)) = Node (y,k') (Node (x,h') l sl) sr where
+    h' = 1 + max (height l) (height sl)
+    k' = 1 + max (height sr) h'
+
 -- helper to return the height value of a given tree
 height :: Tree a -> Int
 height EmptyTree = 0
