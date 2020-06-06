@@ -8,9 +8,8 @@ data Tree a = EmptyTree
 insert :: (Ord a) => a -> Tree a -> Tree a
 insert x EmptyTree = Node (x,0) EmptyTree EmptyTree
 insert x (Node (v,b) l r)
-    | x < v = Node (v,b) (insert x l) r
-    | x > v = Node (v,b) l (insert x r)
-    | otherwise = Node (x,b) l r
+    | x < v = (Node (v,b+1) (insert x l) r)
+    | otherwise = (Node (v,b+1) l (insert x r))
 
 -- rotates a tree around its root to the right
 rotateR :: Tree a -> Tree a
@@ -26,10 +25,38 @@ rotateL (Node (x,h) l (Node (y,k) sl sr)) = Node (y,k') (Node (x,h') l sl) sr wh
     h' = 1 + max (height l) (height sl)
     k' = 1 + max (height sr) h'
 
+-- rebalances a tree
+rebalance :: Tree a -> Tree a
+rebalance EmptyTree = EmptyTree
+rebalance t@(Node (v,h) l r)
+    -- op didnt require rebalancing, balance factor is still in range
+    | abs (diff t) < 2        = t
+    -- new node was created left.left of root
+    | diff t == 2 && dl /= -1 = rotateR t
+    -- new node was created left.right of root
+    | diff t == 2 && dl == -1 = rotateR (Node (v,h-1) (rotateL l) r)
+    -- new node was created right.right of root
+    | diff t == -2 && dr /= 1 = rotateL t
+    -- new node was created right.left of root
+    | diff t == -2 && dr == 1 = rotateL (Node (v,h-1) l (rotateR r))
+    where
+        dl = diff l
+        dr = diff r
+
 -- helper to return the height value of a given tree
 height :: Tree a -> Int
 height EmptyTree = 0
 height (Node (_,h) l r) = h
+
+-- helper to return the left child of a tree
+left :: Tree a -> Tree a
+left EmptyTree = EmptyTree
+left (Node _ l _) = l
+
+-- helper to return the right child of a tree
+right :: Tree a -> Tree a
+right EmptyTree = EmptyTree
+right (Node _ _ r) = r
 
 -- returns the height difference of a tree's children
 diff :: Tree a -> Int
