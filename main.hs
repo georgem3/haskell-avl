@@ -11,6 +11,22 @@ insert x (Node v l r)
     | x < v = rebalance $ (Node v (insert x l) r)
     | otherwise = rebalance $ (Node v l (insert x r))
 
+-- deletes a given element if found, without rebalancing the tree
+delete :: (Ord a) => a -> Tree a -> Tree a 
+delete _ EmptyTree = EmptyTree
+delete x t@(Node v l r)
+    | x < v = (Node v (delete x l) r)
+    | x > v = (Node v l (delete x r))
+    | x == v && l == EmptyTree = r
+    | x == v && r == EmptyTree = l
+    | otherwise = (Node succ (delete succ l) r) 
+    where
+        succ = inOrderSucc t
+
+inOrderSucc :: Tree a -> a 
+inOrderSucc (Node v EmptyTree _)  = v
+inOrderSucc (Node _ l _)  = inOrderSucc l
+
 -- rotates a tree around its root to the right
 rotateR :: Tree a -> Tree a
 rotateR EmptyTree = EmptyTree
