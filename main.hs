@@ -1,4 +1,5 @@
 module AVLTree where
+import Debug.Trace
 data Tree a = EmptyTree 
             | Node a (Tree a) (Tree a) 
             -- corresponds to (nodeContent) leftTree rightTree
@@ -15,27 +16,17 @@ insert x (Node v l r)
 delete :: (Ord a) => a -> Tree a -> Tree a 
 delete _ EmptyTree = EmptyTree
 delete x t@(Node v l r)
-    | x < v = (Node v (delete x l) r)
-    | x > v = (Node v l (delete x r))
+    | x < v = rebalance (Node v (delete x l) r)
+    | x > v = rebalance (Node v l (delete x r))
     | x == v && l == EmptyTree = r
     | x == v && r == EmptyTree = l
     | otherwise = (Node succ (delete succ l) r) 
     where
         succ = inOrderSucc t
-
-inOrderSucc :: Tree a -> a 
-inOrderSucc (Node v EmptyTree _)  = v
-inOrderSucc (Node _ l _)  = inOrderSucc l
-
--- rotates a tree around its root to the right
-rotateR :: Tree a -> Tree a
-rotateR EmptyTree = EmptyTree
-rotateR (Node x (Node y sl sr) r) = Node y sl (Node x sr r)
-
--- rotates a tree around its root to the left
-rotateL :: Tree a -> Tree a
-rotateL EmptyTree = EmptyTree
-rotateL (Node x l (Node y sl sr)) = Node y (Node x l sl) sr
+        -- inOrderSucc is technically a partial function, but recursion handles EmptyTree beforehand
+        inOrderSucc :: (Ord a) => Tree a -> a 
+        inOrderSucc (Node v EmptyTree _) = v
+        inOrderSucc (Node _ l _)         = inOrderSucc l
 
 -- rebalances a tree
 rebalance :: Tree a -> Tree a
@@ -51,15 +42,32 @@ rebalance t@(Node v l r)
     | diff t == -2 && dr /= 1 = rotateL t
     -- new node was created right.left of root
     | diff t == -2 && dr == 1 = rotateL (Node v l (rotateR r))
+    -- tree wasnt an AVL Tree to begin with
+    | otherwise = t
     where
         dl = diff l
         dr = diff r
+        -- helper to return the height value of a given tree
+        height :: Tree a -> Int
+        height EmptyTree = 0
+        height (Node _ l r) = 1 + max (height l) (height r)
 
--- helper to return the height value of a given tree
-height :: Tree a -> Int
-height EmptyTree = 0
-height (Node _ l r) = 1 + max (height l) (height r)
+        -- returns the height difference of a tree's children
+        diff :: Tree a -> Int
+        diff EmptyTree = 0
+        diff (Node v l r) = (height l) - (height r)
 
+        -- rotates a tree around its root to the right
+        rotateR :: Tree a -> Tree a
+        rotateR EmptyTree = EmptyTree
+        rotateR (Node x (Node y sl sr) r) = Node y sl (Node x sr r)
+
+        -- rotates a tree around its root to the left
+        rotateL :: Tree a -> Tree a
+        rotateL EmptyTree = EmptyTree
+        rotateL (Node x l (Node y sl sr)) = Node y (Node x l sl) sr
+
+-- Not part of the data structure implementation
 -- helper to return the left child of a tree
 left :: Tree a -> Tree a
 left EmptyTree = EmptyTree
@@ -70,14 +78,9 @@ right :: Tree a -> Tree a
 right EmptyTree = EmptyTree
 right (Node _ _ r) = r
 
--- returns the height difference of a tree's children
-diff :: Tree a -> Int
-diff EmptyTree = 0
-diff (Node v l r) = (height l) - (height r)
-
 -- helper to quickly build a tree from an integer list
-fromList :: [Integer] -> Tree Integer
-fromList = foldr insert EmptyTree . reverse
+fromList :: [Int] -> Tree Int
+fromList = foldr insert EmptyTree
 
 -- helper for printing out a tree
 instance (Show a) => Show (Tree a) where
